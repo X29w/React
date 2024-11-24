@@ -30,14 +30,13 @@ export default [
       "no-constant-condition": "off",
       "@typescript-eslint/ban-ts-comment": "off",
       "@typescript-eslint/no-var-requires": "off",
-        "react/react-in-jsx-scope": "off",
-      'prettier/prettier': ['error', {
-      // 方案1：完全忽略换行符检查
-      endOfLine: 'auto',
-      
-      // 或者方案2：明确指定使用 windows 风格的换行符
-      // endOfLine: 'crlf',
-    }],
+      "react/react-in-jsx-scope": "off",
+      "prettier/prettier": [
+        "error",
+        {
+          endOfLine: "auto",
+        },
+      ],
     },
   },
 ];
