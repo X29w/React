@@ -47,7 +47,7 @@ const ReactElement = (
  * 3. 使用 reduce 处理剩余的 props，确保只包含对象自身的属性
  * 4. 返回处理后的 [key, ref, props] 元组
  */
-const extractPropsFromConfig = (config: Jsx.JsxConfig): [Key, Ref, Props] => {
+const extractPropsFromConfig = (config: React.JsxConfig): [Key, Ref, Props] => {
   const { key = null, ref = null, ...props } = config;
   return [
     key != null ? String(key) : null,
@@ -122,7 +122,7 @@ const processChildren = (props: Props, children: any[]): Props => {
  */
 export const jsx = (
   type: ElementType,
-  config: Jsx.JsxConfig,
+  config: React.JsxConfig,
   ...children: any
 ) => {
   // 第一步：提取和处理配置
@@ -152,7 +152,7 @@ export const jsx = (
  * 3. 可以进行开发时的警告提示
  * 4. 可以添加开发工具所需的调试信息
  */
-export const jsxDev = (type: ElementType, config: Jsx.JsxConfig) => {
+export const jsxDev = (type: ElementType, config: React.JsxConfig) => {
   const [key, ref, props] = extractPropsFromConfig(config);
   return ReactElement(type, key, ref, props);
 };
