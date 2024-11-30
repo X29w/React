@@ -161,6 +161,8 @@ declare module React {
     | typeof ContextProvider // Context Provider 组件
     | typeof SuspenseComponent // Suspense 组件
     | typeof OffscreenComponent; // Offscreen 组件
+  
+  
 
   export type Flags = number;
 
@@ -296,22 +298,22 @@ declare module React {
     lastEffect: Effect | null;
   }
 
-
   /**
- * 更新方式
- * this.setState(xxx) / this.setState(x => xx)
- */
-export interface Update<State> {
-  action: React.Action<State>;
-  lane: React.Lane;
-  next: Update<any> | null;
-}
+   * 更新方式
+   * this.setState(xxx) / this.setState(x => xx)
+   */
+  export interface Update<State> {
+    action: React.Action<State>;
+    lane: React.Lane;
+    next: Update<any> | null;
+  }
 
-export interface UpdateQueue<State> {
-  shared: {
-    pending: Update<State> | null;
-  };
-  dispatch: React.Dispatch<State> | null;
-}
+  export interface UpdateQueue<State> {
+    shared: {
+      pending: Update<State> | null;
+    };
+    dispatch: React.Dispatch<State> | null;
+  }
 
+  export type EventCallback = (e: Event) => void;
 }
