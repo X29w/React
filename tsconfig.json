@@ -16,6 +16,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": false,
     "skipLibCheck": true,
-    "baseUrl": "./packages"
+    "baseUrl": "./packages",
+    "types": ["node"]
   }
 }

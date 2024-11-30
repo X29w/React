@@ -1,4 +1,37 @@
 declare module React {
+  /** 在这里集中定义React的类型 */
+
+  /** 定义 React 的 Type 类型 */
+  export type Type = any;
+
+  /** 定义 React 的 Key 类型 */
+  export type Key = string | null;
+
+  /** 定义 React 的 Ref 类型 */
+  export type Ref<T = any> =
+    | { current: T | null }
+    | ((instance: T | null) => void)
+    | null;
+
+  /** 定义 React 的 Props 类型 */
+  export type Props = {
+    [key: string]: any;
+    children?: any;
+  };
+
+  /** 定义 React 的 ElementType 类型 */
+  export type ElementType = number | symbol;
+
+  /** 定义 React 的 ReactElement 类型 */
+  export interface ReactElementType {
+    $$typeof: symbol | number;
+    type: ElementType;
+    key: Key;
+    ref: Ref;
+    props: Props;
+    __mark: string;
+  }
+
   /**
    * React 配置对象的类型定义
    * @interface JsxConfig
@@ -128,4 +161,157 @@ declare module React {
     | typeof ContextProvider // Context Provider 组件
     | typeof SuspenseComponent // Suspense 组件
     | typeof OffscreenComponent; // Offscreen 组件
+
+  export type Flags = number;
+
+  export type Lane = number;
+  // 集合
+  export type Lanes = number;
+
+  export interface PendingPassiveEffects {
+    unmount: Effect[];
+    update: Effect[];
+  }
+
+  export interface OffscreenProps {
+    mode: "hidden" | "visible";
+    children: any;
+  }
+
+  export type Container = Element;
+
+  export interface Dispatcher {
+    useState: <T>(initialState: (() => T) | T) => [T, Dispatch<T>];
+    useEffect: (callback: () => void, deps: any[] | void) => void;
+    useTransition: () => [boolean, (callback: () => void) => void];
+    useRef: <T>(initialValue: T) => { current: T };
+    useContext: <T>(context: ReactContext<T>) => T;
+    use: <T>(usable: Usable<T>) => T;
+  }
+
+  export type Dispatch<State> = (action: Action<State>) => void;
+
+  export type Container = Element;
+  export type Instance = Element;
+  export type TestInstance = Text;
+
+  export type Action<State> = State | ((prevState: State) => State);
+
+  export type ReactContext<T> = {
+    $$typeof: symbol | number;
+    Provider: ReactProviderType<T> | null;
+    _currentValue: T;
+  };
+
+  export type ReactProviderType<T> = {
+    $$typeof: symbol | number;
+    _context: ReactContext<T>;
+  };
+
+  export type Usable<T> = Thenable<T> | ReactContext<T>;
+
+  // 1. untracked: 没有追踪到的状态
+  // 2. pending: promise的pending状态
+  // 3. fulfilled: promise的resolved状态
+  // 4. rejected: promise的rejected状态
+  export type Thenable<T, Result = void, Err = any> =
+    | UntrackedThenable<T, Result, Err>
+    | PendingThenable<T, Result, Err>
+    | FulfilledThenable<T, Result, Err>
+    | RejectedThenable<T, Result, Err>;
+
+  /**
+   * 唤起更新的意思
+   */
+  export interface Awakened<Result = any> {
+    then(
+      onFulfill: () => Result,
+      onReject: () => Result
+    ): void | Awakened<Result>;
+  }
+
+  export interface ThenableImpl<T, Result, Err> {
+    then(
+      onFulfill: (value: T) => Result,
+      onReject: (error: Err) => Result
+    ): void | Awakened<Result>;
+  }
+
+  interface UntrackedThenable<T, Result, Err>
+    extends ThenableImpl<T, Result, Err> {
+    status?: void;
+  }
+
+  export interface PendingThenable<T, Result, Err>
+    extends ThenableImpl<T, Result, Err> {
+    status: "pending";
+  }
+
+  export interface FulfilledThenable<T, Result, Err>
+    extends ThenableImpl<T, Result, Err> {
+    status: "fulfilled";
+    value: T;
+  }
+
+  export interface RejectedThenable<T, Result, Err>
+    extends ThenableImpl<T, Result, Err> {
+    status: "rejected";
+    reason: Err;
+  }
+
+  export interface SyntheticEvent extends Event {
+    __stopPropagation: boolean;
+  }
+
+  export interface Paths {
+    capture: EventCallback[];
+    bubble: EventCallback[];
+  }
+
+  export interface DOMElement extends Element {
+    [elementPropsKey]: Props;
+    __props: Props;
+  }
+
+  export interface Hook {
+    memoizedState: any;
+    updateQueue: unknown;
+    next: Hook | null;
+    baseState: any;
+    baseQueue: Update<any> | null;
+  }
+
+  export type EffectCallback = () => void;
+  export type EffectDeps = any[] | null;
+
+  export interface Effect {
+    tag: React.Flags;
+    create: EffectCallback | void;
+    destroy: EffectCallback | void;
+    deps: EffectDeps;
+    next: Effect | null;
+  }
+
+  export interface FCUpdateQueue<State> extends UpdateQueue<State> {
+    lastEffect: Effect | null;
+  }
+
+
+  /**
+ * 更新方式
+ * this.setState(xxx) / this.setState(x => xx)
+ */
+export interface Update<State> {
+  action: React.Action<State>;
+  lane: React.Lane;
+  next: Update<any> | null;
+}
+
+export interface UpdateQueue<State> {
+  shared: {
+    pending: Update<State> | null;
+  };
+  dispatch: React.Dispatch<State> | null;
+}
+
 }

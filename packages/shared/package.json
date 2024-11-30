@@ -1,12 +1,12 @@
 {
   "name": "shared",
   "version": "1.0.0",
+  "description": "All public methods and type definitions",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "x29",
-  "license": "ISC",
-  "description": "所有公共方法以及类型定义"
+  "author": "",
+  "license": "ISC"
 }

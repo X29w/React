@@ -1,7 +1,7 @@
 {
   "name": "react-reconciler",
   "version": "1.0.0",
-  "description": "react-reconciler",
+  "description": "React Reconciler",
   "module": "index.ts",
   "dependencies": {
     "shared": "workspace: *"
@@ -10,6 +10,6 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "x29",
+  "author": "",
   "license": "ISC"
 }

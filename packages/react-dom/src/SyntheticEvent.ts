@@ -1,0 +1,154 @@
+import {
+  unstable_ImmediatePriority,
+  unstable_NormalPriority,
+  unstable_runWithPriority,
+  unstable_UserBlockingPriority,
+} from "scheduler";
+
+export const elementPropsKey = "__props";
+const validEventTypeList = ["click"];
+
+type EventCallback = (e: Event) => void;
+
+// 合成事件
+
+
+// dom.__props = reactElement props
+export function updateFiberProps(node: React.DOMElement, props: React.Props) {
+  node[elementPropsKey] = props;
+}
+
+export function initEvent(container: React.Container, eventType: string) {
+  if (!validEventTypeList.includes(eventType)) {
+    console.warn("当前不支持", eventType, "事件");
+    return;
+  }
+
+  if (__DEV__) {
+    console.log("初始化事件：", eventType);
+  }
+
+  container.addEventListener(eventType, (e: Event) => {
+    dispatchEvent(container, eventType, e);
+  });
+}
+
+function createSyntheticEvent(e: Event) {
+  const syntheticEvent = e as React.SyntheticEvent;
+  syntheticEvent.__stopPropagation = false;
+  const originStopPropagation = e.stopPropagation.bind(e);
+
+  syntheticEvent.stopPropagation = () => {
+    syntheticEvent.__stopPropagation = true;
+    if (originStopPropagation) {
+      originStopPropagation();
+    }
+  };
+  return syntheticEvent;
+}
+
+/**
+ *
+ * @param container
+ * @param eventType
+ * @param e
+ */
+function dispatchEvent(container: React.Container, eventType: string, e: Event) {
+  const targetElement = e.target;
+
+  if (targetElement === null) {
+    console.warn("事件不存在target", e);
+  }
+  // 1. 收集沿途的事件
+  const { bubble, capture } = collectPaths(
+    targetElement as React.DOMElement,
+    container,
+    eventType
+  );
+  // 2. 构造合成事件
+  const se = createSyntheticEvent(e);
+  // 3. 遍历capture
+  triggerEventFlow(capture, se);
+  // 4. bubble
+  if (!se.__stopPropagation) {
+    triggerEventFlow(bubble, se);
+  }
+}
+
+function triggerEventFlow(paths: EventCallback[], se: React.SyntheticEvent) {
+  for (let i = 0; i < paths.length; i++) {
+    const callback = paths[i];
+    unstable_runWithPriority(eventTypeToSchedulePriority(se.type), () => {
+      callback.call(null, se);
+    });
+    if (se.__stopPropagation) {
+      break;
+    }
+  }
+}
+
+function getEventCallbackNameFromEventType(
+  eventType: string
+): string[] | undefined {
+  return {
+    click: ["onClickCapture", "onClick"],
+  }[eventType];
+}
+
+function collectPaths(
+  targetElement: React.DOMElement,
+  container: React.Container,
+  eventType: string
+) {
+  const paths: React.Paths = {
+    capture: [],
+    bubble: [],
+  };
+
+  /**
+   * div#container     onClick onClickCapture
+   *    div   onClick onClickCapture
+   *       p  onClick  点击
+   *       bubble [p onClick, div onClick, container Onclick]
+   *       capture [container onClickCapture, div onClickCapture]
+   */
+  while (targetElement && targetElement !== container) {
+    // 收集
+    const elementProps = targetElement[elementPropsKey];
+    if (elementProps) {
+      const callbackNameList = getEventCallbackNameFromEventType(eventType);
+      if (callbackNameList) {
+        callbackNameList.forEach((callbackName, i) => {
+          const eventCallback = elementProps[callbackName];
+          if (eventCallback) {
+            if (i === 0) {
+              //capture
+              paths.capture.unshift(eventCallback);
+            } else {
+              paths.bubble.push(eventCallback);
+            }
+          }
+        });
+      }
+    }
+    targetElement = targetElement.parentNode as React.DOMElement;
+  }
+  return paths;
+}
+
+/**
+ * 不同事件产生的不同的优先级
+ * @param eventType
+ */
+function eventTypeToSchedulePriority(eventType: string) {
+  switch (eventType) {
+    case "click":
+    case "keydown":
+    case "keyup":
+      return unstable_ImmediatePriority;
+    case "scroll":
+      return unstable_UserBlockingPriority;
+    default:
+      return unstable_NormalPriority;
+  }
+}
